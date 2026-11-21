@@ -44,7 +44,7 @@ The first start installs the dependencies, runs the migrations and loads the fix
 half a minute. Then:
 
 1. **The assistant:** <http://localhost:8000/assistant>. Click "Book 2 seats on Friday for John
-   Nair". The assistant fills in the booking form. The form appears in the conversation with a message
+   Doe". The assistant fills in the booking form. The form appears in the conversation with a message
    on the field saying that Friday has only one seat left. Pick Saturday, press
    **Book**, and the booking appears on the list next to it.
 2. **From an email to a filled-in form:** <http://localhost:8000/book>, then "Paste the message and
