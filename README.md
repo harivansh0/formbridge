@@ -7,12 +7,10 @@ an existing form handler and its form becomes a tool for AI agents. The agent fi
 gets the form's own validation back. A person sees the real form, corrects it and submits it. No rule is
 written twice, and none of the tools an agent gets can save.
 
-![The assistant filled in the booking form; the form answers that Friday has one seat left](docs/images/assistant-form.png)
+![Four steps on the assistant screen: you ask for two seats on Friday; the assistant fills in the booking form and the form answers that Friday has one seat left; you pick Saturday; you press Book and the booking appears on the list](formbridge/docs/images/formbridge-in-use.gif)
 
-The person picks another session and presses **Book**. The application's normal code makes the
-booking:
-
-![The form answers Done, and the booking is on the list](docs/images/assistant-done.png)
+The assistant fills in the booking form, and the form answers with its own rule. The person picks
+another session and presses **Book**. The application's normal code makes the booking.
 
 ```php
 #[AsFormTool(
@@ -129,6 +127,8 @@ Every further form needs one more attribute: `RescheduleBookingHandler` and `Can
 are exposed the same way.
 
 ## How it works
+
+![Six steps between an AI assistant, FormBridge with your form, and a person: the assistant calls the tool; your form checks the values and nothing is saved; the assistant gets the form's answer; the person gets the real form; the person presses Book; your form checks again and your handler saves once. The assistant has no tool that saves](formbridge/docs/images/formbridge-flow.svg)
 
 Every FormBridge caller follows the same path through the application's own form.
 
