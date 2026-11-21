@@ -2,6 +2,8 @@
 
 **The AI fills in your Symfony form. You press the button.**
 
+[Watch the 83-second video](https://www.youtube.com/watch?v=1hT8x24lbcg)
+
 Add one attribute to a form handler you already have. Its form becomes a tool for AI assistants.
 
 - The assistant fills the form in and gets your form's own error messages back.
