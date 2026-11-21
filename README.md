@@ -25,17 +25,20 @@ final class CreateBookingHandler
 
 ## Try it
 
-You need Docker. You do not need an API key.
+You need Docker. You do not need an API key: without one, the assistant answers the suggested
+requests and the example email with fixed replies.
 
 ```bash
 git clone https://github.com/harivansh0/formbridge.git && cd formbridge
 docker compose up
 ```
 
-The first start takes about half a minute. Then open:
+The first start builds the image and installs the dependencies. When the terminal prints
+`Application: http://localhost:8000`, open:
 
-- <http://localhost:8000/assistant> and click "Book 2 seats on Friday for John Doe". The form
-  answers that Friday has one seat left. Pick Saturday and press **Book**.
+- <http://localhost:8000/assistant> and click "Book 2 seats on Friday for John Doe,
+  john@example.com". The form answers that Friday has one seat left. Pick Saturday and press
+  **Book**.
 - <http://localhost:8000/book> and choose "Paste the message and the form is filled in for you". It
   turns a customer's email into a filled-in form.
 
@@ -47,8 +50,10 @@ The first start takes about half a minute. Then open:
 composer require formbridge/formbridge-bundle
 ```
 
-Then put `#[AsFormTool]` on a handler. [The bundle's documentation](formbridge/docs/index.md) covers
-configuration, events and limits.
+Your application must allow beta packages, because Symfony's MCP bundle is still a pre-release.
+[Installation](formbridge/docs/index.md#installation) has the steps. Then put `#[AsFormTool]` on a
+handler. [The bundle's documentation](formbridge/docs/index.md) covers configuration, events and
+limits.
 
 ## What you get
 
@@ -69,8 +74,8 @@ people cannot get the last seat.
 
 - [`formbridge/`](formbridge) is the bundle, published as
   [`formbridge/formbridge-bundle`](https://packagist.org/packages/formbridge/formbridge-bundle).
-- The rest is **Crumb & Crust workshops**, a bakery's booking desk with three forms (book, move,
-  cancel). The bundle is built against it.
+- The rest is **Crumb & Crust workshops**, a bakery's booking desk. It uses the bundle for its
+  three forms: book, move and cancel.
 
 Built on Symfony AI 1.0.0-BETA1 and the official PHP MCP SDK.
 
@@ -78,7 +83,7 @@ Built on Symfony AI 1.0.0-BETA1 and the official PHP MCP SDK.
 
 - [Tests and status](docs/status.md): 152 tests, what was checked by hand, and what is not covered yet.
 - [Upstream findings](docs/upstream-findings.md): twelve issues found in the pre-releases while
-  building this, each with its workaround.
+  building this, with the workarounds and the limits that remain.
 
 ## License
 
