@@ -36,7 +36,7 @@
                         <span class="badge">Cancelled</span>
                     {% else %}
                         <a href="{{ path('booking_move', {id: booking.id}) }}">Move</a>
-                        <a href="{{ path('booking_cancel', {id: booking.id}) }}">Cancel</a>
+                        <a class="danger" href="{{ path('booking_cancel', {id: booking.id}) }}">Cancel</a>
                     {% endif %}
                 </td>
             </tr>
