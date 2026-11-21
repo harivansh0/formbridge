@@ -54,7 +54,7 @@ final class FormToolboxTest extends KernelTestCase
         }
 
         self::assertSame(['cancel_booking', 'create_booking', 'reschedule_booking'], array_keys($tools));
-        self::assertStringContainsString('fri-19 = Friday 19:00 Sourdough basics', $tools['create_booking']->getParameters()['properties']['session']['description']);
+        self::assertStringContainsString('fri-19 = "Friday 19:00 Sourdough basics', $tools['create_booking']->getParameters()['properties']['session']['description']);
         self::assertTrue($tools['create_booking']->isReadOnly());
     }
 
@@ -86,7 +86,7 @@ final class FormToolboxTest extends KernelTestCase
 
             return match (\count($toolAnswers)) {
                 0 => new ToolCallResult([new ToolCall('1', 'create_booking', ['session' => 'fri-19'] + $booking)]),
-                1 => str_contains($toolAnswers[0]['content'], 'sat-10 = Saturday')
+                1 => str_contains($toolAnswers[0]['content'], 'sat-10 = "Saturday')
                     ? new ToolCallResult([new ToolCall('2', 'create_booking', ['session' => 'sat-10'] + $booking)])
                     : 'The form did not offer an alternative.',
                 default => 'Friday is full, so I filled the form in for Saturday. Please check it and press Book.',

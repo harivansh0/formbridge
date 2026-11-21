@@ -27,6 +27,7 @@ final class AssistantController extends AbstractController
         return $this->render('assistant/screen.html.twig', [
             'suggestions' => Suggestions::prompts(),
             'live' => $platform->isLive(),
+            'available' => $platform->isAvailable(),
             'model' => $model,
         ]);
     }

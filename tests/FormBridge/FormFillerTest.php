@@ -37,7 +37,7 @@ final class FormFillerTest extends KernelTestCase
         $format = $this->modelCalls[0]['response_format'];
         self::assertSame('json_schema', $format['type']);
         self::assertSame(['session', 'seats', 'name', 'email', 'notes'], array_keys($format['json_schema']['schema']['properties']));
-        self::assertStringContainsString('sun-14 = Sunday 14:00 Croissants', $format['json_schema']['schema']['properties']['session']['description']);
+        self::assertStringContainsString('sun-14 = "Sunday 14:00 Croissants', $format['json_schema']['schema']['properties']['session']['description']);
     }
 
     public function testWhatTheModelReadsIsPutThroughTheForm(): void

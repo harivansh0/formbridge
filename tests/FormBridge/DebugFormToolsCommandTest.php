@@ -41,7 +41,7 @@ final class DebugFormToolsCommandTest extends KernelTestCase
         $output = $this->command->getDisplay();
         self::assertStringContainsString('Book seats for one person in a workshop session.', $output);
         self::assertStringContainsString('"additionalProperties": false', $output);
-        self::assertStringContainsString('fri-19 = Friday 19:00 Sourdough basics (1 seat left, €25 per seat)', $output);
+        self::assertStringContainsString('fri-19 = \\"Friday 19:00 Sourdough basics (1 seat left, €25 per seat)\\"', $output);
     }
 
     public function testAnUnknownToolIsAnError(): void

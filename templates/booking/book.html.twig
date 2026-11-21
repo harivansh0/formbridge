@@ -4,11 +4,13 @@
 
 {% block body %}
     <h1>Book seats</h1>
-    <p class="lede">
-        Got the request by email?
-        <a href="{{ path('form_bridge_fill', {tool: 'create_booking', text: example_email}) }}">Paste the message and the form is filled in for you</a>.
-        {% if example_email %}Offline mode: only the example message is understood.{% endif %}
-    </p>
+    {% if filler_available %}
+        <p class="lede">
+            Got the request by email?
+            <a href="{{ path('form_bridge_fill', {tool: 'create_booking', text: example_email}) }}">Paste the message and the form is filled in for you</a>.
+            {% if example_email %}Offline mode: only the example message is understood.{% endif %}
+        </p>
+    {% endif %}
 
     {{ form_start(form, {attr: {class: 'booking', novalidate: 'novalidate'}}) }}
         {{ form_errors(form) }}

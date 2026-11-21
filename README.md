@@ -60,7 +60,8 @@ Without `AI_API_KEY` the assistant runs in **offline mode**: a built-in responde
 suggested prompts with the tool calls a model makes for them, and the screen says so. Everything
 after the model is unchanged: the Symfony AI agent, its tool call, the form rendered by Symfony, the
 validation, the booking. Offline mode exists for local development and CI. In `prod` there are no
-canned replies: without a key the assistant and the form filler answer with an error.
+canned replies: without a key the assistant screen says that no model is configured, and the form
+filler is not offered.
 
 `docker compose exec app composer db:reset` deletes all bookings and loads the fixtures again. It is
 a development command and is not coordinated with requests that are running.
@@ -254,16 +255,18 @@ error rather than being described wrongly.
   `NotNull`, `Range`, `Positive`, `PositiveOrZero`, `Length` and `Email`. Every other rule is still
   enforced by the form, but the agent learns of it from the form's answer.
 - A choice field lists all its options in the tool description, and option labels often hold text
-  that users entered (a booking's name here). The list is marked as data for the model, and saving
-  never depends on the model, but a field with thousands of options makes for a very large schema.
+  that users entered (a booking's name here). Each label is quoted and the list is marked as data
+  for the model, in the tool description and in a form's answer, and saving never depends on the
+  model, but a field with thousands of options makes for a very large schema.
 - An empty nested group sent as `{}` is rejected by the MCP SDK before the form runs (upstream
   finding 11). Leave the group out instead.
 - Number fields that use digit grouping in a locale where "." is the grouping sign are not supported.
 - A handler's refusal is put on the field with the same name as its path; forms that rename fields
   with `property_path` get it on the form as a whole.
 - The name of a form tool and that name with `_submit` appended are taken. A clash with another
-  form or with a `#[McpTool]` service fails at compile time; tools registered in other ways are not
-  checked, and the MCP registry would let them replace a form's tool.
+  form, or with a `#[McpTool]` service on the same MCP server, fails when the container is built;
+  tools registered in other ways are not checked, and the MCP registry would let them replace a
+  form's tool.
 
 ## Repository layout
 
@@ -289,7 +292,7 @@ docker compose exec app vendor/bin/php-cs-fixer fix     # @Symfony
 docker compose exec app composer check                  # all of the above, plus linting and schema validation
 ```
 
-`php bin/phpunit` runs 147 tests: 72 of the application in `tests/` and 75 of the package in
+`php bin/phpunit` runs 152 tests: 73 of the application in `tests/` and 79 of the package in
 `formbridge/tests/`. The package's tests use a small application of their own (`tests/App`), so
 they also run in the package's repository, on PHP 8.2 with Symfony 7.4 and on PHP 8.4 with
 Symfony 8.1.

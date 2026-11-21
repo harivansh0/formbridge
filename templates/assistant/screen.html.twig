@@ -79,7 +79,7 @@
             <div class="avatar" aria-hidden="true">A</div>
             <div class="grow">
                 <h1>Booking assistant</h1>
-                <p>{% if live %}Symfony AI agent · {{ model }}{% else %}Symfony AI agent · offline mode{% endif %}</p>
+                <p>{% if live %}Symfony AI agent · {{ model }}{% elseif available %}Symfony AI agent · offline mode{% else %}Symfony AI agent · no model configured{% endif %}</p>
             </div>
             <a class="quiet" href="{{ path('assistant') }}">New conversation</a>
         </header>
@@ -87,8 +87,10 @@
         <div class="messages" id="messages" aria-live="polite">
             {% if live %}
                 <div class="note">The assistant fills in the booking forms for you. Only you can save them.</div>
-            {% else %}
+            {% elseif available %}
                 <div class="note">Offline mode: no model key is configured, so the assistant only understands the suggestions below. Forms, validation and bookings work as usual.</div>
+            {% else %}
+                <div class="note">No model key is configured, so the assistant cannot answer. Set AI_API_KEY. The booking pages work as usual.</div>
             {% endif %}
         </div>
 

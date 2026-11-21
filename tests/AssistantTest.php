@@ -4,6 +4,9 @@ declare(strict_types=1);
 
 namespace App\Tests;
 
+use App\Assistant\AssistantPlatform;
+use App\Assistant\OfflineResponder;
+use Symfony\AI\Platform\PlatformInterface;
 use Symfony\Bundle\FrameworkBundle\KernelBrowser;
 use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
 
@@ -64,6 +67,22 @@ final class AssistantTest extends WebTestCase
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('running offline', $answer['reply']);
         self::assertNull($answer['form']);
+    }
+
+    public function testInProductionThereAreNoCannedReplies(): void
+    {
+        self::bootKernel();
+        $container = self::getContainer();
+        $provider = self::createStub(PlatformInterface::class);
+        $offline = $container->get(OfflineResponder::class);
+
+        self::assertTrue((new AssistantPlatform($provider, $offline, '', 'dev'))->isAvailable());
+        self::assertTrue((new AssistantPlatform($provider, $offline, 'a-key', 'prod'))->isAvailable());
+
+        $withoutKey = new AssistantPlatform($provider, $offline, '', 'prod');
+        self::assertFalse($withoutKey->isAvailable());
+        $this->expectException(\LogicException::class);
+        $withoutKey->invoke('any-model', 'Hello');
     }
 
     public function testAnEmptyQuestionIsRefused(): void

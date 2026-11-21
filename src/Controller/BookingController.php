@@ -34,6 +34,7 @@ final class BookingController extends AbstractController
         return $this->handle($request, $form, $createBooking, 'booking/book.html.twig', [
             // Offline, the form filler only understands this message.
             'example_email' => $platform->isLive() ? null : Suggestions::EMAIL,
+            'filler_available' => $platform->isAvailable(),
         ]);
     }
 

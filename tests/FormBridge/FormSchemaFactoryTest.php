@@ -34,8 +34,8 @@ final class FormSchemaFactoryTest extends KernelTestCase
     {
         $session = $this->schemaOf('create_booking')['properties']['session'];
 
-        self::assertStringContainsString('fri-19 = Friday 19:00 Sourdough basics (1 seat left', $session['description']);
-        self::assertStringContainsString('sat-10 = Saturday 10:00 Sourdough basics (4 seats left', $session['description']);
+        self::assertStringContainsString('fri-19 = "Friday 19:00 Sourdough basics (1 seat left', $session['description']);
+        self::assertStringContainsString('sat-10 = "Saturday 10:00 Sourdough basics (4 seats left', $session['description']);
         self::assertArrayNotHasKey('enum', $session);
     }
 
@@ -56,7 +56,7 @@ final class FormSchemaFactoryTest extends KernelTestCase
         $schema = $this->schemaOf('reschedule_booking');
 
         self::assertSame(['booking', 'newSession'], array_keys($schema['properties']));
-        self::assertStringContainsString('3 = #3 Lena Fischer, 4 seats in Saturday 10:00 Sourdough basics', $schema['properties']['booking']['description']);
+        self::assertStringContainsString('3 = "#3 Lena Fischer, 4 seats in Saturday 10:00 Sourdough basics"', $schema['properties']['booking']['description']);
     }
 
     /**

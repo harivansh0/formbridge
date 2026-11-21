@@ -35,6 +35,14 @@ final class AssistantPlatform implements PlatformInterface
         return '' !== $this->apiKey;
     }
 
+    /**
+     * False in production without a key: there are no canned replies there.
+     */
+    public function isAvailable(): bool
+    {
+        return $this->isLive() || 'prod' !== $this->environment;
+    }
+
     public function invoke(string|Model $model, array|string|object $input, array $options = []): DeferredResult
     {
         return $this->platform()->invoke($model, $input, $options);
@@ -50,7 +58,7 @@ final class AssistantPlatform implements PlatformInterface
         if ($this->isLive()) {
             return $this->provider;
         }
-        if ('prod' === $this->environment) {
+        if (!$this->isAvailable()) {
             throw new \LogicException('The assistant needs a model provider key: set AI_API_KEY.');
         }
 
