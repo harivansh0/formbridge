@@ -185,8 +185,13 @@ transaction, because its locks are released when it returns.
 ## Using the bundle
 
 The bundle is its own Composer package in [`formbridge/`](formbridge); the application installs it
-through a path repository. It is also published on its own, as a read-only copy of that folder, at
-<https://github.com/harivansh0/formbridge-bundle>.
+through a path repository. It is also published on its own as
+[`formbridge/formbridge-bundle`](https://packagist.org/packages/formbridge/formbridge-bundle), from a
+read-only copy of that folder at <https://github.com/harivansh0/formbridge-bundle>:
+
+```bash
+composer require formbridge/formbridge-bundle
+```
 
 ```yaml
 # config/packages/form_bridge.yaml
