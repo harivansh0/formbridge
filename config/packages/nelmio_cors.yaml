@@ -1,0 +1,10 @@
+# Lets the MCP Inspector, a browser-based client, read the MCP endpoint in development.
+when@dev:
+    nelmio_cors:
+        paths:
+            '^/mcp':
+                allow_origin: ['http://localhost:6274', 'http://127.0.0.1:6274']
+                allow_methods: ['GET', 'POST', 'DELETE', 'OPTIONS']
+                allow_headers: ['*']
+                expose_headers: ['Mcp-Session-Id', 'WWW-Authenticate']
+                max_age: 600

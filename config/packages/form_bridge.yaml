@@ -1,0 +1,11 @@
+form_bridge:
+    agents: ['assistant']
+    mcp_servers: ['default']
+
+    drafts:
+        lifetime: 3600
+
+    fill:
+        platform: 'App\Assistant\AssistantPlatform'
+        model: '%env(AI_MODEL)%'
+        rate_limiter: assistant

@@ -1,0 +1,23 @@
+mcp:
+    servers:
+        default:
+            name: 'workshops'
+            description: 'Crumb & Crust workshops: book, move and cancel bookings through the application''s own forms.'
+            registry: '*'
+
+            transports:
+                http: true
+                # bin/console mcp:server, for clients that start the server themselves
+                stdio: true
+
+            http:
+                path: /mcp
+
+when@dev:
+    mcp:
+        servers:
+            default:
+                http:
+                    allowed_hosts: ['localhost', '127.0.0.1']
+                    # MCP Inspector
+                    allowed_origins: ['http://localhost:6274', 'http://127.0.0.1:6274']

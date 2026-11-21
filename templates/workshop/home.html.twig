@@ -1,0 +1,48 @@
+{% extends 'base.html.twig' %}
+
+{% block body %}
+    <h1>Baking workshops</h1>
+    <p class="lede">This week's sessions and the bookings taken for them.</p>
+
+    <h2>Sessions</h2>
+    <table>
+        <thead><tr><th>Session</th><th>Price per seat</th><th>Seats left</th></tr></thead>
+        <tbody>
+        {% for session in sessions %}
+            <tr>
+                <td>{{ session.title }}</td>
+                <td class="num">€{{ session.pricePerSeat }}</td>
+                <td class="num">{{ session.seatsLeft }} of {{ session.capacity }}</td>
+            </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <p class="actions"><a class="button" href="{{ path('book') }}">Book seats</a></p>
+
+    <h2>Bookings</h2>
+    <table>
+        <thead><tr><th>#</th><th>Name</th><th>Session</th><th>Seats</th><th>Total</th><th class="col-notes">Notes</th><th></th></tr></thead>
+        <tbody>
+        {% for booking in bookings %}
+            <tr{% if booking.cancelled %} class="cancelled"{% endif %}>
+                <td class="num">{{ booking.id }}</td>
+                <td>{{ booking.name }}</td>
+                <td>{{ booking.session.title }}</td>
+                <td class="num">{{ booking.seats }}</td>
+                <td class="num">€{{ booking.total }}</td>
+                <td class="col-notes">{{ booking.cancelled ? booking.cancellationReason : booking.notes }}</td>
+                <td class="row-actions">
+                    {% if booking.cancelled %}
+                        <span class="badge">Cancelled</span>
+                    {% else %}
+                        <a href="{{ path('booking_move', {id: booking.id}) }}">Move</a>
+                        <a href="{{ path('booking_cancel', {id: booking.id}) }}">Cancel</a>
+                    {% endif %}
+                </td>
+            </tr>
+        {% else %}
+            <tr><td colspan="7">No bookings yet.</td></tr>
+        {% endfor %}
+        </tbody>
+    </table>
+{% endblock %}

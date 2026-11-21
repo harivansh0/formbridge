@@ -1,0 +1,14 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}{{ title }} · {{ parent() }}{% endblock %}
+
+{% block body %}
+    <h1>{{ title }}</h1>
+
+    {{ form_start(form, {attr: {class: 'booking', novalidate: 'novalidate'}}) }}
+        {{ form_errors(form) }}
+        {{ form_rest(form) }}
+        <button type="submit" class="button">{{ submit_label }}</button>
+        <a class="back" href="{{ path('home') }}">Back</a>
+    {{ form_end(form, {render_rest: false}) }}
+{% endblock %}

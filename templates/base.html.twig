@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Crumb & Crust workshops{% endblock %}</title>
+    <link rel="icon" href="data:,">
+    <style>
+        :root { --bg: #f4f1ec; --card: #ffffff; --fg: #1f2428; --muted: #636c75; --line: #dcd6cc; --accent: #0f6e66; --bad: #b3261e; --bad-soft: #fbe9e7; --good-soft: #e1f3e6; color-scheme: light dark; }
+        @media (prefers-color-scheme: dark) {
+            :root { --bg: #14181c; --card: #1c2228; --fg: #e8ecef; --muted: #9aa5af; --line: #323a42; --accent: #5fc4b8; --bad: #f28b82; --bad-soft: #3a201e; --good-soft: #17301f; }
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
+        header.site { border-bottom: 1px solid var(--line); background: var(--card); }
+        header.site div, main { max-width: 860px; margin: 0 auto; padding: 0 20px; }
+        header.site div { display: flex; align-items: center; justify-content: space-between; height: 58px; }
+        header.site a.brand { font-weight: 700; color: var(--fg); text-decoration: none; }
+        header.site nav a { color: var(--accent); text-decoration: none; margin-left: 18px; font-weight: 600; }
+        main { padding-top: 28px; padding-bottom: 60px; }
+        h1 { font-size: 28px; margin: 0 0 6px; } h2 { font-size: 19px; margin: 32px 0 10px; }
+        p.lede { color: var(--muted); margin: 0 0 20px; max-width: 62ch; }
+        table { width: 100%; border-collapse: collapse; background: var(--card); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+        th, td { text-align: left; padding: 10px 14px; border-bottom: 1px solid var(--line); }
+        th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
+        tr:last-child td { border-bottom: 0; } td.num { font-variant-numeric: tabular-nums; }
+        .flash { background: var(--good-soft); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 4px; margin-bottom: 18px; }
+        .button { display: inline-block; background: var(--accent); color: #fff; padding: 9px 18px; border-radius: 6px; text-decoration: none; font-weight: 650; border: 0; font: inherit; cursor: pointer; }
+        form.booking { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 20px; max-width: 560px; }
+        form.booking > div { margin-bottom: 14px; }
+        form.booking label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
+        form.booking input, form.booking select, form.booking textarea { width: 100%; padding: 8px 10px; font: inherit; color: var(--fg); background: var(--bg); border: 1px solid var(--line); border-radius: 6px; }
+        form.booking .help-text { color: var(--muted); font-size: 13px; margin-top: 3px; }
+        form.booking ul { list-style: none; margin: 0 0 6px; padding: 7px 10px; background: var(--bad-soft); color: var(--bad); border-left: 3px solid var(--bad); border-radius: 4px; font-size: 14px; font-weight: 550; }
+        p.actions { margin-top: 16px; }
+        tr.cancelled td { color: var(--muted); }
+        tr.cancelled td:nth-child(-n+5) { text-decoration: line-through; }
+        td.row-actions { white-space: nowrap; text-align: right; }
+        td.row-actions a, a.back { color: var(--accent); text-decoration: none; font-weight: 600; margin-left: 12px; }
+        @media (max-width: 720px) {
+            th, td { padding: 9px 10px; }
+            .col-notes { display: none; }
+            td.row-actions a { display: block; margin-left: 0; }
+        }
+        .badge { font-size: 12px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); border: 1px solid var(--line); border-radius: 999px; padding: 2px 9px; }
+    </style>
+</head>
+<body>
+    <header class="site">
+        <div>
+            <a class="brand" href="{{ path('home') }}">Crumb & Crust workshops</a>
+            <nav><a href="{{ path('home') }}">Sessions</a><a href="{{ path('book') }}">Book</a><a href="{{ path('assistant') }}" target="_top">Assistant</a></nav>
+        </div>
+    </header>
+    <main>
+        {% for message in app.flashes('success') %}<div class="flash">{{ message }}</div>{% endfor %}
+        {% block body %}{% endblock %}
+    </main>
+</body>
+</html>

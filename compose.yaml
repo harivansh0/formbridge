@@ -1,0 +1,12 @@
+# Local development stack: the application on http://localhost:8000, its MCP endpoint on /mcp.
+services:
+    app:
+        build: ./docker
+        volumes:
+            - .:/app
+        ports:
+            # Loopback only: the application has no authentication of its own.
+            - "127.0.0.1:8000:8000"
+        environment:
+            # Base address of generated links outside a web request (the STDIO server).
+            DEFAULT_URI: http://localhost:8000

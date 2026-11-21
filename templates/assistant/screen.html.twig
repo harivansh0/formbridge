@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Booking assistant · Crumb & Crust</title>
+    <link rel="icon" href="data:,">
+    <style>
+        :root {
+            --bg: #eceff2; --panel: #ffffff; --fg: #1b2228; --muted: #5f6a75; --line: #d7dde3;
+            --accent: #0f6e66; --accent-fg: #ffffff; --me: #0f6e66; --me-fg: #ffffff; --them: #f1f4f6; --note: #fff6dd; --note-fg: #6b5200;
+            color-scheme: light dark;
+        }
+        @media (prefers-color-scheme: dark) {
+            :root {
+                --bg: #0e1317; --panel: #171d23; --fg: #e7ecf0; --muted: #9ba7b2; --line: #2d3640;
+                --accent: #5fc4b8; --accent-fg: #0b1512; --me: #1f5f58; --me-fg: #f1fbf9; --them: #212931; --note: #33290f; --note-fg: #ecd28a;
+            }
+        }
+        * { box-sizing: border-box; }
+        html, body { height: 100%; }
+        body { margin: 0; background: var(--bg); color: var(--fg); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", sans-serif;
+            display: grid; grid-template-columns: minmax(0, 11fr) minmax(0, 9fr); gap: 14px; padding: 14px; }
+        .pane { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; display: flex; flex-direction: column; min-height: 0; overflow: hidden; }
+        .pane > header { display: flex; align-items: center; gap: 10px; padding: 12px 16px; border-bottom: 1px solid var(--line); }
+        .pane > header h1 { font-size: 15px; margin: 0; }
+        .pane > header p { margin: 0; color: var(--muted); font-size: 12.5px; }
+        .pane > header .grow { flex: 1; min-width: 0; }
+        .avatar { width: 32px; height: 32px; border-radius: 50%; background: var(--accent); color: var(--accent-fg); display: grid; place-items: center; font-weight: 700; flex: none; }
+        .avatar.site { border-radius: 8px; background: var(--them); color: var(--fg); border: 1px solid var(--line); }
+        .quiet { font: inherit; font-size: 12.5px; color: var(--muted); background: none; border: 1px solid var(--line); border-radius: 999px; padding: 4px 11px; cursor: pointer; text-decoration: none; }
+        .quiet:hover { color: var(--fg); }
+
+        .messages { flex: 1; overflow-y: auto; padding: 18px 16px 8px; display: flex; flex-direction: column; gap: 12px; }
+        .note { align-self: center; max-width: 46ch; text-align: center; background: var(--note); color: var(--note-fg); border-radius: 10px; padding: 8px 14px; font-size: 13px; }
+        .message { display: flex; gap: 8px; max-width: 100%; }
+        .message.me { justify-content: flex-end; }
+        .message .avatar { width: 26px; height: 26px; font-size: 12px; margin-top: 2px; }
+        .bubble { padding: 9px 13px; border-radius: 16px; max-width: 78%; overflow-wrap: anywhere; }
+        .me .bubble { background: var(--me); color: var(--me-fg); border-bottom-right-radius: 5px; }
+        .them .bubble { background: var(--them); border-bottom-left-radius: 5px; }
+        .them .body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; align-items: flex-start; }
+        .them .bubble a { color: var(--accent); }
+        .form-card { width: 100%; height: 80px; border: 1px solid var(--line); border-radius: 14px; background: var(--panel); display: block; }
+        details.inside { font-size: 12.5px; color: var(--muted); width: 100%; }
+        details.inside summary { cursor: pointer; }
+        details.inside pre { margin: 6px 0 0; padding: 10px; background: var(--them); border-radius: 8px; white-space: pre-wrap; word-break: break-word; font: 12px/1.45 ui-monospace, Menlo, Consolas, monospace; color: var(--fg); }
+        .typing { display: inline-flex; gap: 4px; padding: 4px 2px; }
+        .typing i { width: 6px; height: 6px; border-radius: 50%; background: var(--muted); animation: blink 1s infinite; }
+        .typing i:nth-child(2) { animation-delay: .15s; } .typing i:nth-child(3) { animation-delay: .3s; }
+        @keyframes blink { 0%, 60%, 100% { opacity: .25; } 30% { opacity: 1; } }
+
+        .composer { border-top: 1px solid var(--line); padding: 10px 16px 14px; }
+        .composer p { margin: 0 0 8px; font-size: 12.5px; color: var(--muted); }
+        .requests { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 6px; }
+        .requests button { font: inherit; text-align: left; padding: 9px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); cursor: pointer; }
+        .requests button:hover:not(:disabled) { border-color: var(--accent); }
+        .requests button:disabled { opacity: .5; cursor: default; }
+
+        .ask { display: flex; gap: 8px; margin-top: 10px; }
+        .ask input { flex: 1; min-width: 0; font: inherit; padding: 9px 13px; border-radius: 12px; border: 1px solid var(--line); background: var(--panel); color: var(--fg); }
+        .ask input:focus { outline: 2px solid var(--accent); outline-offset: 1px; }
+        .ask button { font: inherit; font-weight: 650; padding: 9px 16px; border: 0; border-radius: 12px; background: var(--accent); color: var(--accent-fg); cursor: pointer; }
+        .ask button:disabled { opacity: .5; cursor: default; }
+
+        .site-frame { flex: 1; width: 100%; border: 0; background: var(--panel); }
+
+        @media (max-width: 900px) {
+            html, body { height: auto; }
+            body { grid-template-columns: minmax(0, 1fr); }
+            .pane.chat { height: 88vh; }
+            .pane.website { height: 70vh; }
+        }
+    </style>
+</head>
+<body>
+    <section class="pane chat">
+        <header>
+            <div class="avatar" aria-hidden="true">A</div>
+            <div class="grow">
+                <h1>Booking assistant</h1>
+                <p>{% if live %}Symfony AI agent · {{ model }}{% else %}Symfony AI agent · offline mode{% endif %}</p>
+            </div>
+            <a class="quiet" href="{{ path('assistant') }}">New conversation</a>
+        </header>
+
+        <div class="messages" id="messages" aria-live="polite">
+            {% if live %}
+                <div class="note">The assistant fills in the booking forms for you. Only you can save them.</div>
+            {% else %}
+                <div class="note">Offline mode: no model key is configured, so the assistant only understands the suggestions below. Forms, validation and bookings work as usual.</div>
+            {% endif %}
+        </div>
+
+        <div class="composer">
+            <p>{{ live ? 'Ask in your own words, or pick a suggestion:' : 'Pick a suggestion:' }}</p>
+            <div class="requests" id="requests">
+                {% for suggestion in suggestions %}<button type="button">{{ suggestion }}</button>{% endfor %}
+            </div>
+            {% if live %}
+                <form class="ask" id="ask">
+                    <input type="text" id="question" autocomplete="off" placeholder="For example: two seats on Saturday for Mia, mia@example.com" aria-label="Your request">
+                    <button type="submit">Send</button>
+                </form>
+            {% endif %}
+        </div>
+    </section>
+
+    <section class="pane website">
+        <header>
+            <div class="avatar site" aria-hidden="true">W</div>
+            <div class="grow">
+                <h1>Workshop desk</h1>
+                <p>Sessions and bookings</p>
+            </div>
+            <a class="quiet" href="{{ path('home') }}" target="_blank" rel="noopener">Open</a>
+        </header>
+        <iframe class="site-frame" id="site" src="{{ path('home') }}" title="Workshop desk"></iframe>
+    </section>
+
+<script>{{ include('@FormBridge/_host.js.twig') }}</script>
+<script>
+(async () => {
+    const messages = document.getElementById('messages');
+    const requests = document.getElementById('requests');
+    const askForm = document.getElementById('ask');
+    const site = document.getElementById('site');
+    const toBottom = () => { messages.scrollTop = messages.scrollHeight; };
+    const history = [];
+
+    function element(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
+    }
+    function fromMe(text) {
+        const row = element('div', 'message me');
+        row.append(element('div', 'bubble', text));
+        messages.append(row);
+        toBottom();
+    }
+    function fromAssistant() {
+        const row = element('div', 'message them');
+        const body = element('div', 'body');
+        row.append(element('div', 'avatar', 'A'), body);
+        messages.append(row);
+        toBottom();
+        return body;
+    }
+    function typing(body) {
+        const dots = element('div', 'bubble');
+        dots.innerHTML = '<span class="typing"><i></i><i></i><i></i></span>';
+        body.append(dots);
+        toBottom();
+        return dots;
+    }
+    function toolCall(body, text) {
+        const details = element('details', 'inside');
+        details.append(element('summary', '', 'Tool call'), element('pre', '', text));
+        body.append(details);
+    }
+    function busy(isBusy) {
+        for (const control of document.querySelectorAll('.composer button, .composer input')) control.disabled = isBusy;
+    }
+
+    // Forms are rendered the way an MCP Apps host renders them, through the application's MCP endpoint.
+    let host;
+    try {
+        host = await FormBridgeHost.connect({{ path('_mcp_endpoint_default')|json_encode|raw }});
+    } catch (error) {
+        fromAssistant().append(element('div', 'bubble', 'The assistant could not connect: ' + error.message));
+        return;
+    }
+
+    async function ask(text) {
+        busy(true);
+        fromMe(text);
+        const body = fromAssistant();
+        const bubble = typing(body);
+
+        let answer;
+        try {
+            const response = await fetch({{ path('assistant_ask')|json_encode|raw }}, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json', 'X-CSRF-Token': {{ csrf_token('assistant')|json_encode|raw }} },
+                body: JSON.stringify({ message: text, history: history.slice(-8) }),
+            });
+            answer = await response.json();
+            if (!response.ok) throw new Error(answer.error || answer.detail || 'The request failed.');
+        } catch (error) {
+            bubble.textContent = error.message;
+            busy(false);
+            return;
+        }
+
+        // Some models emphasise with Markdown although asked not to.
+        answer.reply = answer.reply.replace(/\*\*(.+?)\*\*/g, '$1');
+        bubble.textContent = answer.reply;
+        history.push({ role: 'user', text }, { role: 'assistant', text: answer.reply });
+
+        try {
+            if (answer.form) {
+                const tool = host.tools.get(answer.form.tool);
+                const frame = element('iframe', 'form-card');
+                frame.title = tool.title;
+                body.append(frame);
+                toolCall(body,
+                    answer.form.tool + ' ' + JSON.stringify(answer.form.arguments, null, 2)
+                    + '\n\nResult, as the model reads it:\n' + FormBridgeHost.modelText(answer.form.result));
+
+                // Keep the start of the reply in view while the form frame grows.
+                const toReply = () => { messages.scrollTop = body.parentElement.offsetTop - messages.offsetTop - 8; };
+                await host.showForm(frame, tool, answer.form.arguments, answer.form.result, {
+                    onResize: toReply,
+                    onFormCall: (name, saved) => {
+                        if (!saved.structuredContent?.saved) return;
+                        site.contentWindow.location.reload();
+                        const done = fromAssistant();
+                        const text = 'Done. ' + saved.structuredContent.result;
+                        done.append(element('div', 'bubble', text));
+                        toolCall(done, name + '\n\nCalled by the form when you pressed the button. The form was validated again and the booking handler ran.');
+                        history.push({ role: 'assistant', text: 'The user submitted the form. ' + saved.structuredContent.result });
+                        toBottom();
+                    },
+                });
+            }
+        } catch (error) {
+            body.append(element('div', 'bubble', 'The form could not be shown: ' + error.message));
+        } finally {
+            busy(false);
+        }
+    }
+
+    for (const button of requests.querySelectorAll('button')) {
+        button.addEventListener('click', () => ask(button.textContent));
+    }
+    askForm?.addEventListener('submit', (event) => {
+        event.preventDefault();
+        const input = document.getElementById('question');
+        const text = input.value.trim();
+        if ('' === text) return;
+        input.value = '';
+        ask(text);
+    });
+})();
+</script>
+</body>
+</html>

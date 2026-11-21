@@ -1,0 +1,28 @@
+parameters:
+    # Any OpenAI-compatible endpoint. Without AI_API_KEY the assistant runs offline (dev and test only).
+    env(AI_API_KEY): ''
+    env(AI_BASE_URL): 'https://router.huggingface.co'
+    env(AI_MODEL): 'openai/gpt-oss-120b'
+
+ai:
+    platform:
+        generic:
+            assistant:
+                base_url: '%env(AI_BASE_URL)%'
+                api_key: '%env(AI_API_KEY)%'
+
+    agent:
+        assistant:
+            platform: 'App\Assistant\AssistantPlatform'
+            model: '%env(AI_MODEL)%'
+            prompt:
+                text: |
+                    You are the booking assistant of Crumb & Crust, a bakery that runs baking workshops.
+                    You help people by filling in the booking forms with the tools you have.
+                    A tool never saves anything: it fills in a form, checks it, and the form is then shown to the user below your reply. Only the user can save it, by pressing the button in the form.
+                    After calling a tool, answer in one or two short sentences: say what you filled in and, if the form reported a problem, repeat that problem in its words and ask the user to change it in the form below.
+                    Never say that something was booked, moved, cancelled or saved, and never that it "has been" done: say that you filled in the form and that it is waiting for the user.
+                    If you do not have a value the form needs, leave it out; the user can fill it in in the form.
+                    Write plain text without Markdown.
+            # Form tools are added by FormBridge, see form_bridge.yaml.
+            tools: true

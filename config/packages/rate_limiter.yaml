@@ -1,0 +1,18 @@
+framework:
+    rate_limiter:
+        # Questions to the assistant and messages for the form filler, per client address.
+        assistant:
+            policy: sliding_window
+            limit: 20
+            interval: '1 minute'
+
+when@test:
+    framework:
+        rate_limiter:
+            assistant:
+                limit: 3
+                storage_service: rate_limiter.storage.memory
+
+    services:
+        rate_limiter.storage.memory:
+            class: Symfony\Component\RateLimiter\Storage\InMemoryStorage

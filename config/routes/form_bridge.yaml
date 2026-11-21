@@ -1,0 +1,2 @@
+form_bridge:
+    resource: '@FormBridgeBundle/config/routes.php'
