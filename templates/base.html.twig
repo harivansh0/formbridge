@@ -6,10 +6,7 @@
     <title>{% block title %}Crumb & Crust workshops{% endblock %}</title>
     <link rel="icon" href="data:,">
     <style>
-        :root { --bg: #f4f1ec; --card: #ffffff; --fg: #1f2428; --muted: #636c75; --line: #dcd6cc; --accent: #0f6e66; --bad: #b3261e; --bad-soft: #fbe9e7; --good-soft: #e1f3e6; color-scheme: light dark; }
-        @media (prefers-color-scheme: dark) {
-            :root { --bg: #14181c; --card: #1c2228; --fg: #e8ecef; --muted: #9aa5af; --line: #323a42; --accent: #5fc4b8; --bad: #f28b82; --bad-soft: #3a201e; --good-soft: #17301f; }
-        }
+        :root { --bg: #ffffff; --card: #ffffff; --fg: #111111; --muted: #5f5f5f; --line: #dcdcdc; --accent: #111111; --accent-fg: #ffffff; --bad: #b3261e; --bad-soft: #fbe9e7; --good-soft: #f3f3f3; color-scheme: light; }
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--bg); color: var(--fg); font: 16px/1.55 system-ui, -apple-system, "Segoe UI", sans-serif; }
         header.site { border-bottom: 1px solid var(--line); background: var(--card); }
@@ -25,7 +22,7 @@
         th { font-size: 12.5px; text-transform: uppercase; letter-spacing: .05em; color: var(--muted); }
         tr:last-child td { border-bottom: 0; } td.num { font-variant-numeric: tabular-nums; }
         .flash { background: var(--good-soft); border-left: 3px solid var(--accent); padding: 10px 14px; border-radius: 4px; margin-bottom: 18px; }
-        .button { display: inline-block; background: var(--accent); color: #fff; padding: 9px 18px; border-radius: 6px; text-decoration: none; font-weight: 650; border: 0; font: inherit; cursor: pointer; }
+        .button { display: inline-block; background: var(--accent); color: var(--accent-fg); padding: 9px 18px; border-radius: 6px; text-decoration: none; font-weight: 650; border: 0; font: inherit; cursor: pointer; }
         form.booking { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 20px; max-width: 560px; }
         form.booking > div { margin-bottom: 14px; }
         form.booking label { display: block; font-weight: 600; font-size: 14px; margin-bottom: 4px; }
@@ -36,7 +33,7 @@
         tr.cancelled td { color: var(--muted); }
         tr.cancelled td:nth-child(-n+5) { text-decoration: line-through; }
         td.row-actions { white-space: nowrap; text-align: right; }
-        td.row-actions a, a.back { color: var(--accent); text-decoration: none; font-weight: 600; margin-left: 12px; }
+        td.row-actions a, a.back { color: var(--accent); text-decoration: underline; text-underline-offset: 3px; font-weight: 600; margin-left: 12px; }
         @media (max-width: 720px) {
             th, td { padding: 9px 10px; }
             .col-notes { display: none; }
