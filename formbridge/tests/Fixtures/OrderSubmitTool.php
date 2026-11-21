@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\FormBridge\Fixtures;
+namespace FormBridge\Tests\Fixtures;
 
 use Mcp\Capability\Attribute\McpTool;
 

@@ -1,7 +1,7 @@
 monolog:
     channels:
         - deprecation
-        - formbridge
+        - form_bridge
 
 # The MCP SDK logs complete tool arguments at debug level: names, email addresses and the submit
 # token of an open form. Its channel is therefore kept at "notice" and above everywhere.

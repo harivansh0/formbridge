@@ -2,9 +2,8 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\FormBridge;
+namespace FormBridge\Tests\Unit;
 
-use App\Tests\FormBridge\Fixtures\EveryFieldType;
 use FormBridge\Exception\UnsupportedFieldException;
 use FormBridge\Form\ConstraintDescriberInterface;
 use FormBridge\Form\FieldDescriberInterface;
@@ -14,6 +13,9 @@ use FormBridge\FormOutcome;
 use FormBridge\FormToolRegistry;
 use FormBridge\FormToolRunner;
 use FormBridge\FormToolSchemas;
+use FormBridge\Tests\Fixtures\EveryFieldType;
+use FormBridge\Tests\Fixtures\Level;
+use FormBridge\Tests\Fixtures\ScanType;
 use PHPUnit\Framework\TestCase;
 use Symfony\Component\DependencyInjection\ServiceLocator;
 use Symfony\Component\Form\Extension\Core\CoreExtension;
@@ -185,12 +187,48 @@ final class FieldTypesTest extends TestCase
         self::assertSame('Letters and digits only. Required.', $properties['code']['description']);
     }
 
+    public function testEveryRuleOfTheSameKindIsDescribed(): void
+    {
+        $pattern = new class implements ConstraintDescriberInterface {
+            public function describe(Constraint $constraint): ?string
+            {
+                return $constraint instanceof Regex ? (string) $constraint->message : null;
+            }
+        };
+        $form = $this->forms->createNamedBuilder('')
+            ->add('code', TextType::class, ['constraints' => [
+                new Regex(pattern: '/^[a-z]/', message: 'Starts with a letter.'),
+                new Regex(pattern: '/[0-9]/', message: 'Contains a digit.'),
+            ]])
+            ->getForm();
+
+        $description = (new FormSchemaFactory($this->validator, [], [$pattern]))->inputSchema($form)['properties']['code']['description'];
+
+        self::assertSame('Starts with a letter. Contains a digit.', $description);
+    }
+
+    public function testADescriberThatReturnsAnUnusableSchemaIsReportedByName(): void
+    {
+        $broken = new class implements FieldDescriberInterface {
+            public function describe(FormInterface $field, FormView $view): ?array
+            {
+                return ['type' => 'colour'];
+            }
+        };
+        $form = $this->forms->createNamedBuilder('')->add('shade', TextType::class)->getForm();
+
+        $this->expectException(UnsupportedFieldException::class);
+        $this->expectExceptionMessage('the field "shade"');
+
+        (new FormSchemaFactory($this->validator, [$broken]))->inputSchema($form);
+    }
+
     public function testAFormThatCannotBeDescribedIsLeftOutInProductionAndAnErrorInDebugMode(): void
     {
         $tools = new FormToolRegistry(
             [
                 'plan_event' => ['form' => EveryFieldType::class, 'description' => 'Plan an event.', 'title' => null, 'submit_label' => 'Save', 'method' => '__invoke'],
-                'send_scan' => ['form' => Fixtures\ScanType::class, 'description' => 'Send a scan.', 'title' => null, 'submit_label' => 'Send', 'method' => '__invoke'],
+                'send_scan' => ['form' => ScanType::class, 'description' => 'Send a scan.', 'title' => null, 'submit_label' => 'Send', 'method' => '__invoke'],
             ],
             new ServiceLocator([]),
         );
@@ -317,7 +355,7 @@ final class FieldTypesTest extends TestCase
         self::assertTrue($outcome->saved);
         self::assertSame('Saved.', $outcome->result);
         self::assertSame('Team offsite', $this->handled[0]['title']);
-        self::assertSame(Fixtures\Level::Advanced, $this->handled[0]['level']);
+        self::assertSame(Level::Advanced, $this->handled[0]['level']);
         self::assertSame(['street' => null, 'city' => 'Lyon'], $this->handled[0]['address']);
     }
 

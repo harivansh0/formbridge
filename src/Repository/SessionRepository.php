@@ -4,10 +4,10 @@ declare(strict_types=1);
 
 namespace App\Repository;
 
+use App\Booking\BookingStatus;
 use App\Entity\Booking;
 use App\Entity\Session;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
-use Doctrine\ORM\Query;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
@@ -21,19 +21,19 @@ class SessionRepository extends ServiceEntityRepository
     }
 
     /**
-     * Reloads a session and the state of its bookings from the database.
+     * Seats still free, counted in the database.
      *
-     * refresh() alone reloads the collection but keeps the state of bookings that are already in
-     * memory, so a booking cancelled by another request would still count as confirmed.
+     * Bookings made or cancelled by other requests count at once. Changes that are not flushed
+     * yet do not, and entities in memory are left as they are.
      */
-    public function reload(Session $session): void
+    public function countSeatsLeft(Session $session): int
     {
-        $entityManager = $this->getEntityManager();
-        $entityManager->refresh($session);
-
-        $entityManager->createQuery('SELECT booking FROM '.Booking::class.' booking WHERE booking.session = :session')
+        $taken = (int) $this->getEntityManager()
+            ->createQuery('SELECT COALESCE(SUM(booking.seats), 0) FROM '.Booking::class.' booking WHERE booking.session = :session AND booking.status = :status')
             ->setParameter('session', $session)
-            ->setHint(Query::HINT_REFRESH, true)
-            ->getResult();
+            ->setParameter('status', BookingStatus::Confirmed)
+            ->getSingleScalarResult();
+
+        return max(0, $session->getCapacity() - $taken);
     }
 }

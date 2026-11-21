@@ -101,6 +101,26 @@ final class LastSeatTest extends KernelTestCase
         self::assertSame(0, $entityManager->find(Session::class, 'fri-19')->getSeatsLeft());
     }
 
+    public function testCheckingSeatsLeavesUnsavedChangesAlone(): void
+    {
+        self::bootKernel();
+        self::resetDatabase();
+        $entityManager = self::getContainer()->get(EntityManagerInterface::class);
+        $friday = $entityManager->find(Session::class, 'fri-19');
+
+        // Tom's booking is cancelled in memory and not flushed yet.
+        $tom = $entityManager->getRepository(Booking::class)->findOneBy(['name' => 'Tom Reid']);
+        $tom->cancel('Changed plans');
+
+        $violations = self::getContainer()->get(ValidatorInterface::class)->validate($this->requestFor($friday, 'Priya Nair'));
+        self::assertCount(0, $violations);
+        self::assertTrue($tom->isCancelled(), 'Validating another request reverted an unsaved change.');
+
+        $entityManager->flush();
+        $entityManager->clear();
+        self::assertTrue($entityManager->getRepository(Booking::class)->findOneBy(['name' => 'Tom Reid'])->isCancelled());
+    }
+
     public function testAHandlerRefusesToRunInsideSomeoneElsesTransaction(): void
     {
         self::bootKernel();

@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Validator;
 
 use App\Booking\BookingRequest;
+use App\Booking\RescheduleRequest;
 use App\Repository\SessionRepository;
 use Symfony\Component\Validator\Constraint;
 use Symfony\Component\Validator\ConstraintValidator;
@@ -23,26 +24,31 @@ final class SeatsAvailableValidator extends ConstraintValidator
         if (!$constraint instanceof SeatsAvailable) {
             throw new UnexpectedTypeException($constraint, SeatsAvailable::class);
         }
-        if (!$value instanceof BookingRequest) {
-            throw new UnexpectedValueException($value, BookingRequest::class);
+
+        [$session, $seats, $path] = match (true) {
+            $value instanceof BookingRequest => [$value->session, $value->seats, 'session'],
+            $value instanceof RescheduleRequest => [$value->newSession, $value->booking?->getSeats(), 'newSession'],
+            default => throw new UnexpectedValueException($value, BookingRequest::class.'|'.RescheduleRequest::class),
+        };
+        if (null === $session || null === $seats || $seats < 1) {
+            return;
         }
-        if (null === $value->session || null === $value->seats || $value->seats < 1) {
+        // A move that RescheduleRequest refuses on its own needs no seat count.
+        if ($value instanceof RescheduleRequest && ($value->booking?->isCancelled() || $value->booking?->getSession() === $session)) {
             return;
         }
 
-        // The session may have been loaded before the latest bookings were made.
-        $this->sessions->reload($value->session);
-        $left = $value->session->getSeatsLeft();
-        if ($value->seats <= $left) {
+        $left = $this->sessions->countSeatsLeft($session);
+        if ($seats <= $left) {
             return;
         }
 
         $this->context
             ->buildViolation(0 === $left ? $constraint->fullMessage : $constraint->tooFewMessage)
-            ->setParameter('{{ session }}', $value->session->getTitle())
+            ->setParameter('{{ session }}', $session->getTitle())
             ->setParameter('{{ left }}', 1 === $left ? '1 seat' : $left.' seats')
-            ->setParameter('{{ seats }}', (string) $value->seats)
-            ->atPath('session')
+            ->setParameter('{{ seats }}', (string) $seats)
+            ->atPath($path)
             ->addViolation();
     }
 }

@@ -6,7 +6,6 @@ namespace App\Booking;
 
 use App\Entity\Booking;
 use App\Entity\Session;
-use App\Repository\SessionRepository;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Lock\LockFactory;
 use Symfony\Component\Validator\Exception\ValidationFailedException;
@@ -24,7 +23,6 @@ final class LockedOperation
     public function __construct(
         private readonly LockFactory $lockFactory,
         private readonly EntityManagerInterface $entityManager,
-        private readonly SessionRepository $sessions,
         private readonly ValidatorInterface $validator,
     ) {
     }
@@ -62,11 +60,7 @@ final class LockedOperation
             }
 
             foreach ($entities as $entity) {
-                if ($entity instanceof Session) {
-                    $this->sessions->reload($entity);
-                } else {
-                    $this->entityManager->refresh($entity);
-                }
+                $this->entityManager->refresh($entity);
             }
 
             $violations = $this->validator->validate($request);

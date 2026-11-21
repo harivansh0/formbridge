@@ -1,7 +1,7 @@
 <?php
 
 $finder = (new PhpCsFixer\Finder())
-    ->in([__DIR__.'/src', __DIR__.'/formbridge/src', __DIR__.'/formbridge/config', __DIR__.'/tests', __DIR__.'/migrations']);
+    ->in([__DIR__.'/src', __DIR__.'/formbridge/src', __DIR__.'/formbridge/config', __DIR__.'/formbridge/tests', __DIR__.'/tests', __DIR__.'/migrations']);
 
 return (new PhpCsFixer\Config())
     ->setRules([

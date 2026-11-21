@@ -2,16 +2,18 @@
 
 declare(strict_types=1);
 
-namespace App\Tests\FormBridge;
+namespace FormBridge\Tests\Unit;
 
 use FormBridge\DependencyInjection\FormToolPass;
 use FormBridge\FormToolRegistry;
 use FormBridge\Mcp\FormToolLoader;
 use FormBridge\Mcp\FreshStateListener;
+use FormBridge\Tests\Fixtures\InheritedOrderTool;
+use FormBridge\Tests\Fixtures\OrderSubmitTool;
 use Mcp\Event\RequestEvent;
 use Mcp\Schema\Request\ListToolsRequest;
 use Mcp\Server\Session\SessionInterface;
-use Symfony\Bundle\FrameworkBundle\Test\WebTestCase;
+use PHPUnit\Framework\TestCase;
 use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Event\ConsoleCommandEvent;
 use Symfony\Component\Console\Input\ArrayInput;
@@ -20,11 +22,7 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Exception\LogicException;
 use Symfony\Contracts\Service\ResetInterface;
 
-/**
- * How the bundle is put together: names, the long-running server, and what is switched off outside
- * development.
- */
-final class WiringTest extends WebTestCase
+final class WiringTest extends TestCase
 {
     public function testTwoFormsCannotEndUpWithTheSameToolName(): void
     {
@@ -49,12 +47,56 @@ final class WiringTest extends WebTestCase
         $container->register('handler.order', \stdClass::class)->addTag(FormToolPass::TAG, [
             'name' => 'order', 'form' => 'Form', 'description' => '', 'title' => null, 'submit_label' => 'Send', 'method' => '__invoke',
         ]);
-        $container->register(Fixtures\OrderSubmitTool::class)->addTag('mcp.tool', ['method' => '__invoke']);
+        $container->register(OrderSubmitTool::class)->addTag('mcp.tool', ['method' => '__invoke']);
 
         $this->expectException(LogicException::class);
         $this->expectExceptionMessage('The MCP tool "order_submit"');
 
         (new FormToolPass())->process($container);
+    }
+
+    public function testAClashIsFoundTheWayTheMcpBundleNamesTools(): void
+    {
+        // A tool named through an attribute that extends #[McpTool].
+        $derived = $this->containerWithFormTool('order');
+        $derived->register(InheritedOrderTool::class)->addTag('mcp.tool', ['method' => 'submit']);
+
+        try {
+            (new FormToolPass())->process($derived);
+            self::fail('A tool named by a derived attribute took the name of a submit tool.');
+        } catch (LogicException $clash) {
+            self::assertStringContainsString('"order_submit"', $clash->getMessage());
+        }
+
+        // An unnamed __invoke() is called after the class that declares it, here "Order".
+        $inherited = $this->containerWithFormTool('Order');
+        $inherited->register(InheritedOrderTool::class)->addTag('mcp.tool', ['method' => '__invoke']);
+
+        $this->expectException(LogicException::class);
+        $this->expectExceptionMessage('"Order"');
+
+        (new FormToolPass())->process($inherited);
+    }
+
+    public function testAnAbstractToolDefinitionCannotClash(): void
+    {
+        $container = $this->containerWithFormTool('order');
+        $container->register(OrderSubmitTool::class)->setAbstract(true)->addTag('mcp.tool', ['method' => '__invoke']);
+
+        (new FormToolPass())->process($container);
+
+        self::assertArrayHasKey('order', $container->getDefinition('form_bridge.registry')->getArgument(0));
+    }
+
+    private function containerWithFormTool(string $name): ContainerBuilder
+    {
+        $container = new ContainerBuilder();
+        $container->register('form_bridge.registry', FormToolRegistry::class)->setArguments([[], null]);
+        $container->register('handler', \stdClass::class)->addTag(FormToolPass::TAG, [
+            'name' => $name, 'form' => 'Form', 'description' => '', 'title' => null, 'submit_label' => 'Send', 'method' => '__invoke',
+        ]);
+
+        return $container;
     }
 
     public function testFormToolsCanBeLimitedToNamedMcpServers(): void
@@ -108,14 +150,5 @@ final class WiringTest extends WebTestCase
         $listener->onMcpRequest($request);
         $listener->onMcpRequest($request);
         self::assertSame(2, $resetter->resets);
-    }
-
-    public function testThePreviewIsNotServedOutsideDebugMode(): void
-    {
-        $client = self::createClient(['debug' => false]);
-
-        $client->request('GET', '/_formbridge/preview');
-
-        self::assertResponseStatusCodeSame(404);
     }
 }

@@ -3,14 +3,14 @@
 **The AI fills in your Symfony form, you press the button.**
 
 FormBridge lets an AI assistant use the forms a Symfony application already has. Put one attribute on
-an existing form handler and its form becomes a tool for AI agents. The agent fills the form in, the
-form's own validation answers, and a person sees the real form, corrects it and submits it. No rule is
+an existing form handler and its form becomes a tool for AI agents. The agent fills the form in and
+gets the form's own validation back. A person sees the real form, corrects it and submits it. No rule is
 written twice, and none of the tools an agent gets can save.
 
 ![The assistant filled in the booking form; the form answers that Friday has one seat left](docs/images/assistant-form.png)
 
-The person picks another session and presses **Book**. The booking is made by the application's
-normal code:
+The person picks another session and presses **Book**. The application's normal code makes the
+booking:
 
 ![The form answers Done, and the booking is on the list](docs/images/assistant-done.png)
 
@@ -35,7 +35,7 @@ application it is developed against: a bakery's booking desk with three forms (b
 
 ## Quick start
 
-You need Docker. Nothing else, and no API key.
+Docker is the only requirement; you do not need an API key.
 
 ```bash
 git clone https://github.com/harivansh0/formbridge.git && cd formbridge
@@ -46,8 +46,8 @@ The first start installs the dependencies, runs the migrations and loads the fix
 half a minute. Then:
 
 1. **The assistant:** <http://localhost:8000/assistant>. Click "Book 2 seats on Friday for Priya
-   Nair". The assistant fills in the booking form, the form answers that Friday has only one seat
-   left, and it appears in the conversation with that message on the field. Pick Saturday, press
+   Nair". The assistant fills in the booking form. The form appears in the conversation with a message
+   on the field saying that Friday has only one seat left. Pick Saturday, press
    **Book**, and the booking appears on the list next to it.
 2. **From an email to a filled-in form:** <http://localhost:8000/book>, then "Paste the message and
    the form is filled in for you". A customer's email is read into the booking form for you to check
@@ -124,12 +124,12 @@ The MCP endpoint is `http://localhost:8000/mcp`; the same server also speaks STD
 | A "paste a message" page | Free text is read into the form by a model whose structured output has the form's own schema | `symfony/ai-platform` |
 | A review link | The filled-in form on a normal web page, for clients that cannot show forms | Symfony Form, Twig |
 
-Every further form costs one more attribute: `RescheduleBookingHandler` and `CancelBookingHandler`
+Every further form needs one more attribute: `RescheduleBookingHandler` and `CancelBookingHandler`
 are exposed the same way.
 
 ## How it works
 
-Every caller takes one path, and on that path the application's own form does the work.
+Every FormBridge caller follows the same path through the application's own form.
 
 | Step | What happens | Where |
 |---|---|---|
@@ -151,8 +151,7 @@ Every caller takes one path, and on that path the application's own form does th
   to the same draft. Attempts are taken one at a time (`symfony/lock`). The draft is closed before
   the handler runs, so an attempt that is cut off after saving cannot be repeated. It is reopened,
   with its original expiry, in two cases only: the form was not valid, or the handler refused it
-  with a `ValidationFailedException`. That makes one rule for handlers: refuse before writing, never
-  after.
+  with a `ValidationFailedException`. Handlers must refuse before writing, never after.
 - **The review link is not authentication.** An agent passes the link on. A bare request to it does
   not save, because submitting needs a CSRF token issued when the page is loaded. Any program that
   can load a page and post a form can do both steps, though. The review page is an ordinary route of
@@ -171,15 +170,15 @@ Every caller takes one path, and on that path the application's own form does th
   form, so a wrong value still reaches the form, which answers in the application's own words and
   shows the person the field to correct.
 
-So for every value the schema lets through, the application's pages and the tool give the same
+For every value the schema lets through, the application's pages and the tool give the same
 validation messages, because both run the same form.
 
 ### Concurrency
 
 Submitting validates again, and the handler has the last word. The three booking handlers run
 through `App\Booking\LockedOperation`: it locks the booking being changed and the session that
-would receive seats, in a fixed order, reloads them from the database together with the session's
-bookings, and validates the request again before anything is written. A booking and a move cannot
+would receive seats, in a fixed order, reloads them, and validates the request again before
+anything is written. The free seats are counted in the database at that moment. A booking and a move cannot
 both get the last seat, and a booking cannot be cancelled twice. It refuses to run inside a caller's
 transaction, because its locks are released when it returns.
 
@@ -225,11 +224,12 @@ which form. [`formbridge/docs/index.md`](formbridge/docs/index.md) has examples.
 `FormBridge\Event\FormSavedEvent` when a form submitted through FormBridge (in the conversation or on
 the review page) was saved; the latter carries the form data and the handler's result. Pages of your
 own that call the same handler directly do not pass through FormBridge and raise no event. FormBridge
-logs both steps on the `formbridge` channel, without field values. The MCP SDK, however, logs complete
+logs both steps on the `form_bridge` channel, without field values. The MCP SDK, however, logs complete
 tool arguments at debug level, so keep its `mcp` channel above debug (see
 `config/packages/monolog.yaml`).
 
-**Inspecting.** `bin/console debug:form-tools` lists the exposed forms;
+**Inspecting.** `bin/console debug:form-tools` lists the registered forms and whether each can be
+exposed;
 `bin/console debug:form-tools create_booking` prints what an agent is told about one, including its
 input schema.
 
@@ -241,7 +241,8 @@ error rather than being described wrongly.
 
 **Limitations:**
 
-- The bundle's own texts (form headings, messages, the review page) are English only.
+- The texts the bundle shows to people come in English, German and French; other languages need a
+  translation file in the application. What the model reads is always English.
 - Forms that change their fields while being submitted (form events) are not handled specially.
 - Labels given as translatable objects are not carried into the schema.
 - Only rules of the default validation group are described, and only these constraints: `NotBlank`,
@@ -265,7 +266,7 @@ error rather than being described wrongly.
 |---|---|
 | `formbridge/src/Form/FormSchemaFactory.php` | A form read as a tool schema |
 | `formbridge/src/FormToolRunner.php` | The path every FormBridge caller takes; events and logging |
-| `formbridge/src/DraftStore.php` | One draft, two ways to reach it, saved at most once |
+| `formbridge/src/DraftStore.php` | A draft that can be reached in two ways and saved at most once |
 | `formbridge/src/Mcp/` | The MCP tools, the MCP App (one static shell for all forms), and `FreshStateListener`, which keeps a long-running STDIO server from answering with stale data |
 | `formbridge/templates/app.html.twig` | The form screen, and where it departs from the MCP bundle's bridge |
 | `formbridge/src/Agent/FormToolbox.php` | The forms as tools of a Symfony AI agent |
@@ -283,13 +284,19 @@ docker compose exec app vendor/bin/php-cs-fixer fix     # @Symfony
 docker compose exec app composer check                  # all of the above, plus linting and schema validation
 ```
 
-The suite has 97 tests. Among them: the same validation messages from the application's pages and
-over MCP (`McpEndpointTest`, `WebsiteAndToolParityTest`), each supported kind of field
-(`FieldTypesTest`), saving once whichever way is used (`SavingOnceTest`), an agent correcting itself
-from the form's answer (`FormToolboxTest`), the last seat for a booking and for a move and seats
-released by another request (`LastSeatTest`), cancelling (`CancelBookingTest`), the limit on
-questions and pasted messages (`AssistantTest`, `FillFromMessageTest`), tool-name clashes and
-server scoping (`WiringTest`), refusing a save from a listener (`EventsTest`), and a real long-running server process that must show a booking made
+`php bin/phpunit` runs 147 tests: 72 of the application in `tests/` and 75 of the package in
+`formbridge/tests/`. The package's tests use a small application of their own (`tests/App`), so
+they also run in the package's repository, on PHP 8.2 with Symfony 7.4 and on PHP 8.4 with
+Symfony 8.1.
+
+Among them: the same validation messages from the application's pages and over MCP
+(`McpEndpointTest`, `WebsiteAndToolParityTest`), each supported kind of field (`FieldTypesTest`),
+saving once whichever way is used (`SavingOnceTest`, `ReviewPageTest`, `DraftStoreTest`), an agent
+correcting itself from the form's answer (`FormToolboxTest`), the last seat for a booking and for a
+move and seats released by another request (`LastSeatTest`), cancelling (`CancelBookingTest`), the
+limit on questions and pasted messages (`AssistantTest`, `FillPageTest`), tool-name clashes and
+server scoping (`WiringTest`), refusing a save from a listener (`FormToolRunnerTest`), translated
+texts (`TranslationTest`), and a real long-running server process that must show a booking made
 elsewhere (`StdioServerTest`). The tests run without a provider key.
 
 ## Status
@@ -316,8 +323,8 @@ Not covered yet:
 - No test calls a real model.
 - A production install (`composer install --no-dev`, `APP_ENV=prod`). The Docker setup is a
   development stack.
-- The bundle on its stated minimums (PHP 8.2, Symfony 7.3). It is developed and tested on PHP 8.4
-  and Symfony 8.1 only.
+- Versions in between: the package is tested on PHP 8.2 with Symfony 7.4 and on PHP 8.4 with
+  Symfony 8.1, the application on PHP 8.4 with Symfony 8.1 only.
 - An application with several MCP servers: scoping the form tools to some of them is tested at the
   container level, not against running servers.
 
@@ -334,7 +341,7 @@ Deployment notes for the workshops application:
   provider requests. The address is that of the direct peer: behind a reverse proxy, configure
   trusted proxies, or all visitors share one limit.
 - Its pages carry their styles and scripts inline instead of going through AssetMapper, and its
-  texts are not translated. Both keep it to one `docker compose up` with nothing to build.
+  own texts are not translated. Both keep it to one `docker compose up` with nothing to build.
 - Offline mode builds its canned replies with `MockPlatformFactory`, a test helper of
   `symfony/ai-platform`; it is never used when a key is set.
 - In the development preview and on the assistant screen the form frame has no access to the page
@@ -343,7 +350,7 @@ Deployment notes for the workshops application:
 
 ## Upstream findings
 
-Building on the pre-releases turned up the following. The first is confirmed against the current
+These issues were found while building on the pre-releases. The first is confirmed against the current
 `main`; the others were seen on `symfony/ai` 1.0.0-BETA1 and `mcp/sdk` 0.9.0.
 
 1. **`symfony/ai-bundle` breaks the container when `symfony/security-core` is installed without

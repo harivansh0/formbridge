@@ -6,9 +6,14 @@ namespace App\Booking;
 
 use App\Entity\Booking;
 use App\Entity\Session;
+use App\Validator\SeatsAvailable;
 use Symfony\Component\Validator\Constraints as Assert;
 use Symfony\Component\Validator\Context\ExecutionContextInterface;
 
+#[SeatsAvailable(
+    fullMessage: '{{ session }} has no seats left, and this booking needs {{ seats }}.',
+    tooFewMessage: '{{ session }} has only {{ left }} left, and this booking needs {{ seats }}.',
+)]
 final class RescheduleRequest
 {
     #[Assert\NotNull(message: 'Choose the booking to move.')]
@@ -36,18 +41,6 @@ final class RescheduleRequest
         if ($this->booking->getSession() === $this->newSession) {
             $context->buildViolation('This booking is already in {{ session }}.')
                 ->setParameter('{{ session }}', $this->newSession->getTitle())
-                ->atPath('newSession')
-                ->addViolation();
-
-            return;
-        }
-
-        $left = $this->newSession->getSeatsLeft();
-        if ($this->booking->getSeats() > $left) {
-            $context->buildViolation('{{ session }} has {{ left }} left, and this booking needs {{ seats }}.')
-                ->setParameter('{{ session }}', $this->newSession->getTitle())
-                ->setParameter('{{ left }}', 0 === $left ? 'no seats' : (1 === $left ? 'only 1 seat' : 'only '.$left.' seats'))
-                ->setParameter('{{ seats }}', (string) $this->booking->getSeats())
                 ->atPath('newSession')
                 ->addViolation();
         }
