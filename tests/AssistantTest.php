@@ -36,7 +36,7 @@ final class AssistantTest extends WebTestCase
         $client = self::createClient();
         self::resetDatabase();
 
-        $answer = $this->ask($client, 'Book 2 seats on Friday for Priya Nair, priya@example.com');
+        $answer = $this->ask($client, 'Book 2 seats on Friday for John Doe, john@example.com');
 
         self::assertResponseIsSuccessful();
         self::assertStringContainsString('Friday 19:00 Sourdough basics has only 1 seat left', $answer['reply']);
@@ -98,11 +98,11 @@ final class AssistantTest extends WebTestCase
     {
         $client = self::createClient();
 
-        $client->jsonRequest('POST', '/assistant/ask', ['message' => 'Book 2 seats on Friday for Priya Nair, priya@example.com']);
+        $client->jsonRequest('POST', '/assistant/ask', ['message' => 'Book 2 seats on Friday for John Doe, john@example.com']);
         self::assertResponseStatusCodeSame(403);
 
         // A cross-site HTML form post cannot be JSON.
-        $client->request('POST', '/assistant/ask', ['message' => 'Book 2 seats on Friday for Priya Nair, priya@example.com']);
+        $client->request('POST', '/assistant/ask', ['message' => 'Book 2 seats on Friday for John Doe, john@example.com']);
         self::assertResponseStatusCodeSame(415);
     }
 

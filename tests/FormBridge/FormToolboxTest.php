@@ -68,7 +68,7 @@ final class FormToolboxTest extends KernelTestCase
     public function testCallingAToolFillsTheFormInAndReturnsTheFormsOwnAnswer(): void
     {
         $result = $this->toolbox->execute(new ToolCall('1', 'create_booking', [
-            'session' => 'fri-19', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com',
+            'session' => 'fri-19', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com',
         ]));
 
         self::assertStringContainsString('Friday 19:00 Sourdough basics has only 1 seat left, and you asked for 2.', $result->getResult());
@@ -82,7 +82,7 @@ final class FormToolboxTest extends KernelTestCase
         // A model that first asks for Friday, reads the form's answer, then tries Saturday.
         $platform = MockPlatformFactory::createPlatform(static function ($model, array $payload) {
             $toolAnswers = array_values(array_filter($payload['messages'], static fn (array $message): bool => 'tool' === $message['role']));
-            $booking = ['seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com'];
+            $booking = ['seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com'];
 
             return match (\count($toolAnswers)) {
                 0 => new ToolCallResult([new ToolCall('1', 'create_booking', ['session' => 'fri-19'] + $booking)]),
@@ -94,7 +94,7 @@ final class FormToolboxTest extends KernelTestCase
         });
         $agent = new Agent($platform, 'test-model', toolbox: $this->toolbox);
 
-        $reply = $agent->call(new MessageBag(Message::ofUser('Two seats on Friday for Priya, or the next free day.')))->asText();
+        $reply = $agent->call(new MessageBag(Message::ofUser('Two seats on Friday for John, or the next free day.')))->asText();
 
         self::assertStringContainsString('Saturday', $reply);
         self::assertCount(2, $this->drafts->all());

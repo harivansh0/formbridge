@@ -64,12 +64,12 @@ final class StdioServerTest extends KernelTestCase
         $request = new BookingRequest();
         $request->session = $container->get(EntityManagerInterface::class)->find(Session::class, 'sun-14');
         $request->seats = 2;
-        $request->name = 'Priya Nair';
-        $request->email = 'priya@example.com';
+        $request->name = 'John Doe';
+        $request->email = 'john@example.com';
         $container->get(CreateBookingHandler::class)($request);
 
         $after = $this->formFor('reschedule_booking', ['booking' => '5', 'newSession' => 'sat-10']);
-        self::assertStringContainsString('#5 Priya Nair, 2 seats in Sunday 14:00 Croissants', $after);
+        self::assertStringContainsString('#5 John Doe, 2 seats in Sunday 14:00 Croissants', $after);
         self::assertStringContainsString('Sunday 14:00 Croissants (5 seats left)', $after);
     }
 

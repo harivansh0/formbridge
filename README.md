@@ -7,7 +7,7 @@ an existing form handler and its form becomes a tool for AI agents. The agent fi
 gets the form's own validation back. A person sees the real form, corrects it and submits it. No rule is
 written twice, and none of the tools an agent gets can save.
 
-![Four steps on the assistant screen: you ask for two seats on Friday; the assistant fills in the booking form and the form answers that Friday has one seat left; you pick Saturday; you press Book and the booking appears on the list](formbridge/docs/images/formbridge-in-use.gif)
+![Four steps on the assistant screen: you ask for two seats on Friday; the assistant fills in the booking form and the form answers that Friday has one seat left; you pick Saturday; you press Book and the booking appears on the list](docs/images/formbridge-in-use.gif)
 
 The assistant fills in the booking form, and the form answers with its own rule. The person picks
 another session and presses **Book**. The application's normal code makes the booking.
@@ -43,7 +43,7 @@ docker compose up
 The first start installs the dependencies, runs the migrations and loads the fixtures; it takes about
 half a minute. Then:
 
-1. **The assistant:** <http://localhost:8000/assistant>. Click "Book 2 seats on Friday for Priya
+1. **The assistant:** <http://localhost:8000/assistant>. Click "Book 2 seats on Friday for John
    Nair". The assistant fills in the booking form. The form appears in the conversation with a message
    on the field saying that Friday has only one seat left. Pick Saturday, press
    **Book**, and the booking appears on the list next to it.
@@ -51,7 +51,7 @@ half a minute. Then:
    the form is filled in for you". A customer's email is read into the booking form for you to check
    and submit.
 3. **One tool call, step by step:**
-   [the development preview](http://localhost:8000/_formbridge/preview?tool=create_booking&args=%7B%22session%22%3A%22fri-19%22%2C%22seats%22%3A2%2C%22name%22%3A%22Priya%20Nair%22%2C%22email%22%3A%22priya%40example.com%22%7D)
+   [the development preview](http://localhost:8000/_formbridge/preview?tool=create_booking&args=%7B%22session%22%3A%22fri-19%22%2C%22seats%22%3A2%2C%22name%22%3A%22John%20Doe%22%2C%22email%22%3A%22john%40example.com%22%7D)
    shows what the model reads next to what the person sees, and the schema read from the form.
 
 Without `AI_API_KEY` the assistant runs in **offline mode**: a built-in responder answers the
@@ -128,7 +128,7 @@ are exposed the same way.
 
 ## How it works
 
-![Six steps between an AI assistant, FormBridge with your form, and a person: the assistant calls the tool; your form checks the values and nothing is saved; the assistant gets the form's answer; the person gets the real form; the person presses Book; your form checks again and your handler saves once. The assistant has no tool that saves](formbridge/docs/images/formbridge-flow.svg)
+![Six steps between an AI assistant, FormBridge with your form, and a person: the assistant calls the tool; your form checks the values and nothing is saved; the assistant gets the form's answer; the person gets the real form; the person presses Book; your form checks again and your handler saves once. The assistant has no tool that saves](docs/images/formbridge-flow.svg)
 
 Every FormBridge caller follows the same path through the application's own form.
 

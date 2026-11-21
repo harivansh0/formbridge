@@ -93,7 +93,7 @@ final class LastSeatTest extends KernelTestCase
         // Another request cancels Tom's three seats.
         $entityManager->getConnection()->executeStatement("UPDATE booking SET status = 'cancelled' WHERE name = 'Tom Reid'");
 
-        $request = $this->requestFor($friday, 'Priya Nair');
+        $request = $this->requestFor($friday, 'John Doe');
         $request->seats = 4;
         self::getContainer()->get(CreateBookingHandler::class)($request);
 
@@ -112,7 +112,7 @@ final class LastSeatTest extends KernelTestCase
         $tom = $entityManager->getRepository(Booking::class)->findOneBy(['name' => 'Tom Reid']);
         $tom->cancel('Changed plans');
 
-        $violations = self::getContainer()->get(ValidatorInterface::class)->validate($this->requestFor($friday, 'Priya Nair'));
+        $violations = self::getContainer()->get(ValidatorInterface::class)->validate($this->requestFor($friday, 'John Doe'));
         self::assertCount(0, $violations);
         self::assertTrue($tom->isCancelled(), 'Validating another request reverted an unsaved change.');
 
@@ -126,7 +126,7 @@ final class LastSeatTest extends KernelTestCase
         self::bootKernel();
         self::resetDatabase();
         $entityManager = self::getContainer()->get(EntityManagerInterface::class);
-        $request = $this->requestFor($entityManager->find(Session::class, 'sat-10'), 'Priya Nair');
+        $request = $this->requestFor($entityManager->find(Session::class, 'sat-10'), 'John Doe');
 
         $entityManager->getConnection()->beginTransaction();
         try {

@@ -30,13 +30,13 @@ final class BookingPagesTest extends WebTestCase
         $this->client->submit($page->selectButton('Book')->form([
             'booking[session]' => 'sat-10',
             'booking[seats]' => '2',
-            'booking[name]' => 'Priya Nair',
-            'booking[email]' => 'priya@example.com',
+            'booking[name]' => 'John Doe',
+            'booking[email]' => 'john@example.com',
         ]), [], ['HTTP_ORIGIN' => 'http://localhost']);
 
         self::assertResponseRedirects('/');
         $this->client->followRedirect();
-        self::assertSelectorTextContains('.flash', 'Booking #5: 2 seats in Saturday 10:00 Sourdough basics for Priya Nair, €50 in total.');
+        self::assertSelectorTextContains('.flash', 'Booking #5: 2 seats in Saturday 10:00 Sourdough basics for John Doe, €50 in total.');
     }
 
     public function testMovingABookingStartsFromThatBooking(): void

@@ -21,7 +21,7 @@ final class EventsTest extends KernelTestCase
 {
     use ResetsDatabase;
 
-    private const PRIYA = ['session' => 'sat-10', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com'];
+    private const JOHN = ['session' => 'sat-10', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com'];
 
     /** @var list<object> */
     private array $events = [];
@@ -43,8 +43,8 @@ final class EventsTest extends KernelTestCase
 
     public function testADraftIsAnnouncedAndASaveCarriesTheHandlersResult(): void
     {
-        $this->runner->draft('create_booking', self::PRIYA);
-        $this->runner->submit('create_booking', self::PRIYA);
+        $this->runner->draft('create_booking', self::JOHN);
+        $this->runner->submit('create_booking', self::JOHN);
 
         self::assertCount(2, $this->events);
         [$drafted, $saved] = $this->events;
@@ -66,7 +66,7 @@ final class EventsTest extends KernelTestCase
             }
         });
 
-        $outcome = $this->runner->submit('create_booking', self::PRIYA);
+        $outcome = $this->runner->submit('create_booking', self::JOHN);
 
         self::assertFalse($outcome->saved);
         self::assertSame([['field' => '', 'message' => 'You may not book for other people.']], $outcome->errors);
@@ -79,7 +79,7 @@ final class EventsTest extends KernelTestCase
         $container = self::getContainer();
         $responder = new FormToolResponder($container->get('twig'), $container->get(DraftStore::class), $container->get('router'), reviewPage: false);
 
-        $result = $responder->forDraft($this->runner->draft('create_booking', self::PRIYA), self::PRIYA);
+        $result = $responder->forDraft($this->runner->draft('create_booking', self::JOHN), self::JOHN);
 
         self::assertArrayNotHasKey('reviewUrl', $result->structuredContent);
         self::assertStringNotContainsString('/_formbridge/review/', $result->content[0]->text);
@@ -87,8 +87,8 @@ final class EventsTest extends KernelTestCase
 
     public function testNothingIsAnnouncedForAReviewOrARefusedSubmit(): void
     {
-        $this->runner->review('create_booking', self::PRIYA);
-        $this->runner->submit('create_booking', ['session' => 'fri-19'] + self::PRIYA);
+        $this->runner->review('create_booking', self::JOHN);
+        $this->runner->submit('create_booking', ['session' => 'fri-19'] + self::JOHN);
 
         self::assertSame([], $this->events);
     }

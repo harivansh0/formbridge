@@ -49,7 +49,7 @@ final class McpEndpointTest extends WebTestCase
 
     public function testADraftIsAnsweredWithTextForTheModelDataForProgramsAndTheFormForThePerson(): void
     {
-        $result = $this->call('create_booking', ['session' => 'fri-19', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com']);
+        $result = $this->call('create_booking', ['session' => 'fri-19', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com']);
 
         self::assertFalse($result['isError']);
         self::assertStringContainsString('has only 1 seat left', $result['content'][0]['text']);
@@ -62,7 +62,7 @@ final class McpEndpointTest extends WebTestCase
 
     public function testTheSubmitTokenIsOnlyInTheFormAndNeverInWhatTheModelReads(): void
     {
-        $result = $this->call('create_booking', ['session' => 'sat-10', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com']);
+        $result = $this->call('create_booking', ['session' => 'sat-10', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com']);
         $token = $this->tokenIn($result);
 
         self::assertStringNotContainsString($token, json_encode([$result['content'], $result['structuredContent']], \JSON_THROW_ON_ERROR));
@@ -78,8 +78,8 @@ final class McpEndpointTest extends WebTestCase
 
     public function testThePersonSubmittingTheFormSavesTheBookingOnce(): void
     {
-        $draft = $this->call('create_booking', ['session' => 'sat-10', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com']);
-        $fields = ['_formbridge_token' => $this->tokenIn($draft), 'session' => 'sat-10', 'seats' => '2', 'name' => 'Priya Nair', 'email' => 'priya@example.com', 'notes' => ''];
+        $draft = $this->call('create_booking', ['session' => 'sat-10', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com']);
+        $fields = ['_formbridge_token' => $this->tokenIn($draft), 'session' => 'sat-10', 'seats' => '2', 'name' => 'John Doe', 'email' => 'john@example.com', 'notes' => ''];
 
         $saved = $this->call('create_booking_submit', $fields);
         self::assertTrue($saved['structuredContent']['saved']);
@@ -110,7 +110,7 @@ final class McpEndpointTest extends WebTestCase
 
     public function testASessionTheSchemaDidNotListStillReachesTheForm(): void
     {
-        $result = $this->call('create_booking', ['session' => 'mon-09', 'seats' => 1, 'name' => 'Priya Nair', 'email' => 'priya@example.com']);
+        $result = $this->call('create_booking', ['session' => 'mon-09', 'seats' => 1, 'name' => 'John Doe', 'email' => 'john@example.com']);
 
         $error = $result['structuredContent']['errors'][0];
         self::assertSame('session', $error['field']);
@@ -120,13 +120,13 @@ final class McpEndpointTest extends WebTestCase
 
     public function testSavingThroughTheFormsToolClosesTheReviewLink(): void
     {
-        $draft = $this->call('create_booking', ['session' => 'sat-10', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com']);
+        $draft = $this->call('create_booking', ['session' => 'sat-10', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com']);
         $reviewPath = (string) parse_url($draft['structuredContent']['reviewUrl'], \PHP_URL_PATH);
 
         $this->client->request('GET', $reviewPath);
         self::assertResponseIsSuccessful();
 
-        $saved = $this->call('create_booking_submit', ['_formbridge_token' => $this->tokenIn($draft), 'session' => 'sat-10', 'seats' => '2', 'name' => 'Priya Nair', 'email' => 'priya@example.com', 'notes' => '']);
+        $saved = $this->call('create_booking_submit', ['_formbridge_token' => $this->tokenIn($draft), 'session' => 'sat-10', 'seats' => '2', 'name' => 'John Doe', 'email' => 'john@example.com', 'notes' => '']);
         self::assertTrue($saved['structuredContent']['saved']);
 
         $this->client->request('GET', $reviewPath);

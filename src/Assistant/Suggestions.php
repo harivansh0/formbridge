@@ -21,9 +21,9 @@ final class Suggestions
 
     private const ALL = [
         [
-            'prompt' => 'Book 2 seats on Friday for Priya Nair, priya@example.com',
+            'prompt' => 'Book 2 seats on Friday for John Doe, john@example.com',
             'tool' => 'create_booking',
-            'arguments' => ['session' => 'fri-19', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com'],
+            'arguments' => ['session' => 'fri-19', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com'],
         ],
         [
             'prompt' => 'Book 1 seat on Sunday for Sam Okoro, sam@example.com. He is vegetarian.',

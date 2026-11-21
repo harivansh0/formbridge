@@ -21,7 +21,7 @@ final class SavingOnceTest extends WebTestCase
 {
     use ResetsDatabase;
 
-    private const PRIYA = ['session' => 'sat-10', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com'];
+    private const JOHN = ['session' => 'sat-10', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com'];
 
     private KernelBrowser $client;
 
@@ -37,12 +37,12 @@ final class SavingOnceTest extends WebTestCase
 
         $page = $this->client->request('GET', $reviewUrl);
         self::assertResponseIsSuccessful();
-        self::assertSame('Priya Nair', $page->filter('input[name="name"]')->attr('value'));
+        self::assertSame('John Doe', $page->filter('input[name="name"]')->attr('value'));
 
         $this->client->submit($page->selectButton('Book')->form());
 
         self::assertResponseIsSuccessful();
-        self::assertSelectorTextContains('.fb-done', 'Booking #5: 2 seats in Saturday 10:00 Sourdough basics for Priya Nair');
+        self::assertSelectorTextContains('.fb-done', 'Booking #5: 2 seats in Saturday 10:00 Sourdough basics for John Doe');
         self::assertSame(5, $this->countBookings());
     }
 
@@ -50,7 +50,7 @@ final class SavingOnceTest extends WebTestCase
     {
         ['reviewUrl' => $reviewUrl] = $this->draft();
 
-        $this->client->request('POST', $reviewUrl, self::PRIYA);
+        $this->client->request('POST', $reviewUrl, self::JOHN);
 
         self::assertResponseStatusCodeSame(403);
         self::assertSame(4, $this->countBookings());
@@ -78,9 +78,9 @@ final class SavingOnceTest extends WebTestCase
 
         $draft = $drafts->findBySubmitToken($submitToken, 'create_booking');
         self::assertNotNull($draft);
-        self::assertTrue($drafts->claim($draft, static fn () => $runner->submit('create_booking', self::PRIYA))?->saved);
+        self::assertTrue($drafts->claim($draft, static fn () => $runner->submit('create_booking', self::JOHN))?->saved);
 
-        self::assertNull($drafts->claim($draft, static fn () => $runner->submit('create_booking', self::PRIYA)));
+        self::assertNull($drafts->claim($draft, static fn () => $runner->submit('create_booking', self::JOHN)));
         $this->client->request('GET', $reviewUrl);
         self::assertResponseStatusCodeSame(404);
         self::assertSame(5, $this->countBookings());
@@ -98,7 +98,7 @@ final class SavingOnceTest extends WebTestCase
         // The handler saves, then the request fails before the outcome is returned.
         try {
             $drafts->claim($draft, static function () use ($runner): never {
-                $runner->submit('create_booking', self::PRIYA);
+                $runner->submit('create_booking', self::JOHN);
 
                 throw new \RuntimeException('The request failed after saving.');
             });
@@ -114,14 +114,14 @@ final class SavingOnceTest extends WebTestCase
 
     public function testCorrectingAFormDoesNotExtendItsLifetime(): void
     {
-        ['submitToken' => $submitToken] = $this->draft(['session' => 'fri-19'] + self::PRIYA);
+        ['submitToken' => $submitToken] = $this->draft(['session' => 'fri-19'] + self::JOHN);
         $container = self::getContainer();
         $drafts = $container->get(DraftStore::class);
         $runner = $container->get(FormToolRunner::class);
         $draft = $drafts->findBySubmitToken($submitToken, 'create_booking');
         self::assertNotNull($draft);
 
-        $outcome = $drafts->claim($draft, static fn () => $runner->submit('create_booking', ['session' => 'fri-19'] + self::PRIYA));
+        $outcome = $drafts->claim($draft, static fn () => $runner->submit('create_booking', ['session' => 'fri-19'] + self::JOHN));
 
         self::assertFalse($outcome?->saved);
         self::assertEquals($draft->expiresAt, $drafts->findBySubmitToken($submitToken, 'create_booking')?->expiresAt);
@@ -130,7 +130,7 @@ final class SavingOnceTest extends WebTestCase
 
     public function testAFormThatIsNotValidStaysOpenForCorrection(): void
     {
-        ['reviewUrl' => $reviewUrl] = $this->draft(['session' => 'fri-19'] + self::PRIYA);
+        ['reviewUrl' => $reviewUrl] = $this->draft(['session' => 'fri-19'] + self::JOHN);
 
         $page = $this->client->request('GET', $reviewUrl);
         self::assertSelectorTextContains('form ul', 'Friday 19:00 Sourdough basics has only 1 seat left, and you asked for 2.');
@@ -156,7 +156,7 @@ final class SavingOnceTest extends WebTestCase
      *
      * @return array{reviewUrl: string, submitToken: string}
      */
-    private function draft(array $values = self::PRIYA): array
+    private function draft(array $values = self::JOHN): array
     {
         $container = self::getContainer();
         $result = $container->get(FormToolResponder::class)->forDraft($container->get(FormToolRunner::class)->draft('create_booking', $values), $values);

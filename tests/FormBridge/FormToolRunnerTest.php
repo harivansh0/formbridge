@@ -17,7 +17,7 @@ final class FormToolRunnerTest extends KernelTestCase
 {
     use ResetsDatabase;
 
-    private const PRIYA = ['session' => 'sat-10', 'seats' => 2, 'name' => 'Priya Nair', 'email' => 'priya@example.com'];
+    private const JOHN = ['session' => 'sat-10', 'seats' => 2, 'name' => 'John Doe', 'email' => 'john@example.com'];
 
     private FormToolRunner $runner;
 
@@ -30,7 +30,7 @@ final class FormToolRunnerTest extends KernelTestCase
 
     public function testADraftIsValidatedByTheApplicationAndReturnsTheAlternatives(): void
     {
-        $outcome = $this->runner->draft('create_booking', ['session' => 'fri-19'] + self::PRIYA);
+        $outcome = $this->runner->draft('create_booking', ['session' => 'fri-19'] + self::JOHN);
 
         self::assertFalse($outcome->valid);
         self::assertFalse($outcome->saved);
@@ -42,7 +42,7 @@ final class FormToolRunnerTest extends KernelTestCase
 
     public function testAValidDraftSavesNothing(): void
     {
-        $outcome = $this->runner->draft('create_booking', self::PRIYA);
+        $outcome = $this->runner->draft('create_booking', self::JOHN);
 
         self::assertTrue($outcome->valid);
         self::assertFalse($outcome->saved);
@@ -60,20 +60,20 @@ final class FormToolRunnerTest extends KernelTestCase
     public function testSubmittingRunsTheApplicationsHandler(): void
     {
         // Submitted the way a browser posts a form: text values.
-        $outcome = $this->runner->submit('create_booking', ['seats' => '2'] + self::PRIYA);
+        $outcome = $this->runner->submit('create_booking', ['seats' => '2'] + self::JOHN);
 
         self::assertTrue($outcome->saved);
-        self::assertSame('Booking #5: 2 seats in Saturday 10:00 Sourdough basics for Priya Nair, €50 in total.', $outcome->result);
+        self::assertSame('Booking #5: 2 seats in Saturday 10:00 Sourdough basics for John Doe, €50 in total.', $outcome->result);
         self::assertSame(5, $this->countBookings());
     }
 
     public function testADraftThatWasValidIsRefusedWhenTheSeatsAreGoneBySubmitTime(): void
     {
-        self::assertTrue($this->runner->draft('create_booking', self::PRIYA)->valid);
+        self::assertTrue($this->runner->draft('create_booking', self::JOHN)->valid);
 
         // Someone else books three of Saturday's four free seats in the meantime.
-        $this->runner->submit('create_booking', ['seats' => '3', 'name' => 'Sam Okoro', 'email' => 'sam@example.com'] + self::PRIYA);
-        $outcome = $this->runner->submit('create_booking', self::PRIYA);
+        $this->runner->submit('create_booking', ['seats' => '3', 'name' => 'Sam Okoro', 'email' => 'sam@example.com'] + self::JOHN);
+        $outcome = $this->runner->submit('create_booking', self::JOHN);
 
         self::assertFalse($outcome->saved);
         self::assertSame('Saturday 10:00 Sourdough basics has only 1 seat left, and you asked for 2.', $outcome->errors[0]['message']);
